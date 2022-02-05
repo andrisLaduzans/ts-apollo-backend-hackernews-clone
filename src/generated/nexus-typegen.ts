@@ -35,6 +35,11 @@ export interface NexusGenObjects {
   }
   Mutation: {};
   Query: {};
+  User: { // root type
+    email: string; // String!
+    id: string; // ID!
+    name: string; // String!
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -51,16 +56,28 @@ export interface NexusGenFieldTypes {
   Link: { // field return type
     description: string; // String!
     id: string; // ID!
+    postedBy: NexusGenRootTypes['User'] | null; // User
     url: string; // String!
   }
   Mutation: { // field return type
+    createUser: NexusGenRootTypes['User']; // User!
     deleteLink: NexusGenRootTypes['Link'] | null; // Link
-    post: NexusGenRootTypes['Link']; // Link!
+    deleteUser: NexusGenRootTypes['User']; // User!
+    post: NexusGenRootTypes['Link'] | null; // Link
     updateLink: NexusGenRootTypes['Link'] | null; // Link
+    updateUser: NexusGenRootTypes['User']; // User!
   }
   Query: { // field return type
     feed: NexusGenRootTypes['Link'][]; // [Link!]!
     link: NexusGenRootTypes['Link'] | null; // Link
+    user: NexusGenRootTypes['User'] | null; // User
+    users: NexusGenRootTypes['User'][]; // [User!]!
+  }
+  User: { // field return type
+    email: string; // String!
+    id: string; // ID!
+    links: NexusGenRootTypes['Link'][]; // [Link!]!
+    name: string; // String!
   }
 }
 
@@ -68,36 +85,65 @@ export interface NexusGenFieldTypeNames {
   Link: { // field return type name
     description: 'String'
     id: 'ID'
+    postedBy: 'User'
     url: 'String'
   }
   Mutation: { // field return type name
+    createUser: 'User'
     deleteLink: 'Link'
+    deleteUser: 'User'
     post: 'Link'
     updateLink: 'Link'
+    updateUser: 'User'
   }
   Query: { // field return type name
     feed: 'Link'
     link: 'Link'
+    user: 'User'
+    users: 'User'
+  }
+  User: { // field return type name
+    email: 'String'
+    id: 'ID'
+    links: 'Link'
+    name: 'String'
   }
 }
 
 export interface NexusGenArgTypes {
   Mutation: {
+    createUser: { // args
+      email: string; // String!
+      name: string; // String!
+      password: string; // String!
+    }
     deleteLink: { // args
+      id: string; // ID!
+    }
+    deleteUser: { // args
       id: string; // ID!
     }
     post: { // args
       description: string; // String!
       url: string; // String!
+      userId: string; // ID!
     }
     updateLink: { // args
       description?: string | null; // String
       id: string; // ID!
       url?: string | null; // String
     }
+    updateUser: { // args
+      email?: string | null; // String
+      id: string; // ID!
+      name?: string | null; // String
+    }
   }
   Query: {
     link: { // args
+      id: string; // ID!
+    }
+    user: { // args
       id: string; // ID!
     }
   }

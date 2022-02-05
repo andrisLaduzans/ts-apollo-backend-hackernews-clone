@@ -1,11 +1,5 @@
-import {
-  extendType,
-  idArg,
-  nonNull,
-  nullable,
-  objectType,
-  stringArg,
-} from "nexus";
+import { extendType, idArg, nonNull, objectType, stringArg } from "nexus";
+import { resolveImportPath } from "nexus/dist/utils";
 
 interface Link {
   id: string;
@@ -19,6 +13,15 @@ export const Link = objectType({
     t.nonNull.id("id");
     t.nonNull.string("description");
     t.nonNull.string("url");
+    t.field("postedBy", {
+      type: "User",
+      resolve(parent, _, context) {
+        const cast = parent as unknown as { id: string };
+        return context.prisma.link
+          .findUnique({ where: { id: cast.id } })
+          .postedBy();
+      },
+    });
   },
 });
 
@@ -39,22 +42,34 @@ export const LinkQuery = extendType({
 export const LinkMutation = extendType({
   type: "Mutation",
   definition(t) {
-    t.nonNull.field("post", {
+    t.field("post", {
       type: "Link",
 
       args: {
         description: nonNull(stringArg()),
         url: nonNull(stringArg()),
+        userId: nonNull(idArg()),
       },
 
-      resolve: async (_, { description, url }, { prisma }) => {
-        const res = (await prisma.link.create({
+      resolve: async (_, { description, url, userId }, { prisma }) => {
+        const user = await prisma.user.findFirst({
+          where: {
+            id: userId,
+          },
+        });
+
+        if (!user) {
+          return null;
+        }
+
+        return prisma.link.create({
           data: {
+            id: Date.now().toString(),
             description,
             url,
+            postedById: user.id,
           },
-        })) as unknown as Link;
-        return res;
+        });
       },
     });
   },
@@ -73,7 +88,7 @@ export const FindLinkQuery = extendType({
       resolve: async (_, { id }, context) => {
         const item = await context.prisma.link.findFirst({
           where: {
-            id: parseInt(id, 10),
+            id: id,
           },
         });
 
@@ -96,17 +111,27 @@ export const UpdateLInkMutation = extendType({
       },
 
       resolve: async (_, { id, description, url }, { prisma }) => {
+        if (!description && !url) {
+          throw new Error(
+            `nothing to update, description: undefined, url: undefined`
+          );
+        }
         const match = await prisma.link.findFirst({
           where: {
-            id: parseInt(id, 10),
+            id,
           },
         });
 
+        if (!match) {
+          throw new Error(`could not find link with id ${id}`);
+        }
+
         const res = prisma.link.update({
           where: {
-            id: parseInt(id, 10),
+            id,
           },
           data: {
+            ...match,
             description: description || match?.description,
             url: url || match?.url,
           },
@@ -129,17 +154,15 @@ export const DeleteLinkMutation = extendType({
       },
 
       resolve: async (_, { id }, { prisma }) => {
-        console.log("delete");
         try {
           const deleted = await prisma.link.delete({
             where: {
-              id: parseInt(id, 10),
+              id,
             },
           });
           return { ...deleted, id: deleted.id.toString() };
         } catch (err) {
-          console.warn("err:", err);
-          return null;
+          throw err;
         }
       },
     });
