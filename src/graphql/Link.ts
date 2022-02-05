@@ -6,7 +6,12 @@ import {
   objectType,
   stringArg,
 } from "nexus";
-import { NexusGenObjects } from "../generated/nexus-typegen";
+
+interface Link {
+  id: string;
+  description: string;
+  url: string;
+}
 
 export const Link = objectType({
   name: "Link",
@@ -17,28 +22,15 @@ export const Link = objectType({
   },
 });
 
-let links: NexusGenObjects["Link"][] = [
-  {
-    id: "1",
-    url: "www.howtographql.com",
-    description: "fullstack tutorial for graphql",
-  },
-
-  {
-    id: "2",
-    url: "graphql.org",
-    description: "graphql official website",
-  },
-];
-
 export const LinkQuery = extendType({
   type: "Query",
 
   definition(t) {
     t.nonNull.list.nonNull.field("feed", {
       type: "Link",
-      resolve() {
-        return links;
+      resolve: async (_, __, { prisma }) => {
+        const all = (await prisma.link.findMany()) as unknown as Link[];
+        return all;
       },
     });
   },
@@ -55,19 +47,14 @@ export const LinkMutation = extendType({
         url: nonNull(stringArg()),
       },
 
-      resolve(_, args) {
-        const { description, url } = args;
-
-        let idCount = links.length + 1;
-        const link = {
-          id: idCount.toString(),
-          description,
-          url,
-        };
-
-        links.push(link);
-
-        return link;
+      resolve: async (_, { description, url }, { prisma }) => {
+        const res = (await prisma.link.create({
+          data: {
+            description,
+            url,
+          },
+        })) as unknown as Link;
+        return res;
       },
     });
   },
@@ -83,9 +70,14 @@ export const FindLinkQuery = extendType({
         id: nonNull(idArg()),
       },
 
-      resolve(_, args) {
-        const { id } = args;
-        return links.find((item) => item.id === id) ?? null;
+      resolve: async (_, { id }, context) => {
+        const item = await context.prisma.link.findFirst({
+          where: {
+            id: parseInt(id, 10),
+          },
+        });
+
+        return item as unknown as Link;
       },
     });
   },
@@ -103,21 +95,24 @@ export const UpdateLInkMutation = extendType({
         url: stringArg(),
       },
 
-      resolve(_, args) {
-        const { id, description, url } = args;
+      resolve: async (_, { id, description, url }, { prisma }) => {
+        const match = await prisma.link.findFirst({
+          where: {
+            id: parseInt(id, 10),
+          },
+        });
 
-        const index = links.findIndex((it) => it.id === id);
-        if (index === -1) return null;
+        const res = prisma.link.update({
+          where: {
+            id: parseInt(id, 10),
+          },
+          data: {
+            description: description || match?.description,
+            url: url || match?.url,
+          },
+        });
 
-        const newItem = {
-          ...links[index],
-          description: description || links[index].description,
-          url: url || links[index].url,
-        };
-
-        links.splice(index, 1, newItem);
-
-        return newItem;
+        return res as any;
       },
     });
   },
@@ -126,16 +121,26 @@ export const UpdateLInkMutation = extendType({
 export const DeleteLinkMutation = extendType({
   type: "Mutation",
   definition(t) {
-    t.list.field("deleteLink", {
+    t.field("deleteLink", {
       type: "Link",
 
       args: {
         id: nonNull(idArg()),
       },
 
-      resolve(_, { id }) {
-        const index = links.findIndex((it) => it.id === id);
-        return index === -1 ? null : links.splice(index, 1);
+      resolve: async (_, { id }, { prisma }) => {
+        console.log("delete");
+        try {
+          const deleted = await prisma.link.delete({
+            where: {
+              id: parseInt(id, 10),
+            },
+          });
+          return { ...deleted, id: deleted.id.toString() };
+        } catch (err) {
+          console.warn("err:", err);
+          return null;
+        }
       },
     });
   },
