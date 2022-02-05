@@ -8,12 +8,15 @@
     "dev": "ts-node-dev --transpile-only --no-notify --exit-child src/index.ts",
     "generate": "ts-node --transpile-only src/schema.ts",
     "prisma:generate": "npx prisma generate",
-    "prisma:migrate": "npx prisma migrate dev --name \"init\""
+    "prisma:migrate": "npx prisma migrate dev --name \"migrate\"",
+    "prisma:update": "npm run prisma:migrate && npm run prisma:generate",
+    "prisma:populate": "npx ts-node src/populate.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@faker-js/faker": "^6.0.0-alpha.5",
     "prisma": "^3.9.1",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.5"

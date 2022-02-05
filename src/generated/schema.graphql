@@ -5,16 +5,29 @@
 type Link {
   description: String!
   id: ID!
+  postedBy: User
   url: String!
 }
 
 type Mutation {
+  createUser(email: String!, name: String!, password: String!): User!
   deleteLink(id: ID!): Link
-  post(description: String!, url: String!): Link!
+  deleteUser(id: ID!): User!
+  post(description: String!, url: String!, userId: ID!): Link
   updateLink(description: String, id: ID!, url: String): Link
+  updateUser(email: String, id: ID!, name: String): User!
 }
 
 type Query {
   feed: [Link!]!
   link(id: ID!): Link
+  user(id: ID!): User
+  users: [User!]!
+}
+
+type User {
+  email: String!
+  id: ID!
+  links: [Link!]!
+  name: String!
 }
