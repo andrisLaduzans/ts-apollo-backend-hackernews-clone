@@ -5,6 +5,7 @@ export const Link = objectType({
   name: "Link",
   definition(t) {
     t.nonNull.id("id");
+    t.nonNull.dateTime("createdAt")
     t.nonNull.string("description");
     t.nonNull.string("url");
     t.field("postedBy", {
