@@ -28,6 +28,10 @@ export interface NexusGenScalars {
 }
 
 export interface NexusGenObjects {
+  AuthPayload: { // root type
+    token: string; // String!
+    user: NexusGenRootTypes['User']; // User!
+  }
   Link: { // root type
     description: string; // String!
     id: string; // ID!
@@ -53,6 +57,10 @@ export type NexusGenRootTypes = NexusGenObjects
 export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars
 
 export interface NexusGenFieldTypes {
+  AuthPayload: { // field return type
+    token: string; // String!
+    user: NexusGenRootTypes['User']; // User!
+  }
   Link: { // field return type
     description: string; // String!
     id: string; // ID!
@@ -60,10 +68,11 @@ export interface NexusGenFieldTypes {
     url: string; // String!
   }
   Mutation: { // field return type
-    createUser: NexusGenRootTypes['User']; // User!
     deleteLink: NexusGenRootTypes['Link'] | null; // Link
     deleteUser: NexusGenRootTypes['User']; // User!
+    login: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     post: NexusGenRootTypes['Link'] | null; // Link
+    signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateLink: NexusGenRootTypes['Link'] | null; // Link
     updateUser: NexusGenRootTypes['User']; // User!
   }
@@ -82,6 +91,10 @@ export interface NexusGenFieldTypes {
 }
 
 export interface NexusGenFieldTypeNames {
+  AuthPayload: { // field return type name
+    token: 'String'
+    user: 'User'
+  }
   Link: { // field return type name
     description: 'String'
     id: 'ID'
@@ -89,10 +102,11 @@ export interface NexusGenFieldTypeNames {
     url: 'String'
   }
   Mutation: { // field return type name
-    createUser: 'User'
     deleteLink: 'Link'
     deleteUser: 'User'
+    login: 'AuthPayload'
     post: 'Link'
+    signup: 'AuthPayload'
     updateLink: 'Link'
     updateUser: 'User'
   }
@@ -112,21 +126,21 @@ export interface NexusGenFieldTypeNames {
 
 export interface NexusGenArgTypes {
   Mutation: {
-    createUser: { // args
-      email: string; // String!
-      name: string; // String!
-      password: string; // String!
-    }
     deleteLink: { // args
       id: string; // ID!
     }
-    deleteUser: { // args
-      id: string; // ID!
+    login: { // args
+      email: string; // String!
+      password: string; // String!
     }
     post: { // args
       description: string; // String!
       url: string; // String!
-      userId: string; // ID!
+    }
+    signup: { // args
+      email: string; // String!
+      name: string; // String!
+      password: string; // String!
     }
     updateLink: { // args
       description?: string | null; // String
@@ -135,7 +149,6 @@ export interface NexusGenArgTypes {
     }
     updateUser: { // args
       email?: string | null; // String
-      id: string; // ID!
       name?: string | null; // String
     }
   }
