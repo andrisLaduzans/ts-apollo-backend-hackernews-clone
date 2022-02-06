@@ -44,6 +44,10 @@ export interface NexusGenObjects {
     id: string; // ID!
     name: string; // String!
   }
+  Vote: { // root type
+    link: NexusGenRootTypes['Link']; // Link!
+    user: NexusGenRootTypes['User']; // User!
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -66,6 +70,7 @@ export interface NexusGenFieldTypes {
     id: string; // ID!
     postedBy: NexusGenRootTypes['User'] | null; // User
     url: string; // String!
+    voters: NexusGenRootTypes['User'][]; // [User!]!
   }
   Mutation: { // field return type
     deleteLink: NexusGenRootTypes['Link'] | null; // Link
@@ -75,6 +80,7 @@ export interface NexusGenFieldTypes {
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateLink: NexusGenRootTypes['Link'] | null; // Link
     updateUser: NexusGenRootTypes['User']; // User!
+    vote: NexusGenRootTypes['Vote'] | null; // Vote
   }
   Query: { // field return type
     feed: NexusGenRootTypes['Link'][]; // [Link!]!
@@ -87,6 +93,11 @@ export interface NexusGenFieldTypes {
     id: string; // ID!
     links: NexusGenRootTypes['Link'][]; // [Link!]!
     name: string; // String!
+    votes: Array<NexusGenRootTypes['Link'] | null>; // [Link]!
+  }
+  Vote: { // field return type
+    link: NexusGenRootTypes['Link']; // Link!
+    user: NexusGenRootTypes['User']; // User!
   }
 }
 
@@ -100,6 +111,7 @@ export interface NexusGenFieldTypeNames {
     id: 'ID'
     postedBy: 'User'
     url: 'String'
+    voters: 'User'
   }
   Mutation: { // field return type name
     deleteLink: 'Link'
@@ -109,6 +121,7 @@ export interface NexusGenFieldTypeNames {
     signup: 'AuthPayload'
     updateLink: 'Link'
     updateUser: 'User'
+    vote: 'Vote'
   }
   Query: { // field return type name
     feed: 'Link'
@@ -121,6 +134,11 @@ export interface NexusGenFieldTypeNames {
     id: 'ID'
     links: 'Link'
     name: 'String'
+    votes: 'Link'
+  }
+  Vote: { // field return type name
+    link: 'Link'
+    user: 'User'
   }
 }
 
@@ -150,6 +168,9 @@ export interface NexusGenArgTypes {
     updateUser: { // args
       email?: string | null; // String
       name?: string | null; // String
+    }
+    vote: { // args
+      linkId: string; // String!
     }
   }
   Query: {

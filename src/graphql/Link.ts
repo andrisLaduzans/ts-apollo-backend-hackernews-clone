@@ -1,12 +1,5 @@
+import { User } from "@prisma/client";
 import { extendType, idArg, nonNull, objectType, stringArg } from "nexus";
-import { resolveImportPath } from "nexus/dist/utils";
-import { context } from "../context";
-
-interface Link {
-  id: string;
-  description: string;
-  url: string;
-}
 
 export const Link = objectType({
   name: "Link",
@@ -16,12 +9,18 @@ export const Link = objectType({
     t.nonNull.string("url");
     t.field("postedBy", {
       type: "User",
-      resolve(parent, _, context) {
-        const cast = parent as unknown as { id: string };
-        return context.prisma.link
-          .findUnique({ where: { id: cast.id } })
-          .postedBy();
-      },
+      resolve: (source, _, { prisma }) =>
+        prisma.link.findUnique({ where: { id: source.id } }).postedBy(),
+    });
+
+    t.nonNull.list.nonNull.field("voters", {
+      type: "User",
+      resolve: (source, _, { prisma }) =>
+        prisma.link
+          .findUnique({
+            where: { id: source.id },
+          })
+          .voters(),
     });
   },
 });
@@ -32,10 +31,7 @@ export const LinkQuery = extendType({
   definition(t) {
     t.nonNull.list.nonNull.field("feed", {
       type: "Link",
-      resolve: async (_, __, { prisma }) => {
-        const all = (await prisma.link.findMany()) as unknown as Link[];
-        return all;
-      },
+      resolve: (_, __, { prisma }) => prisma.link.findMany(),
     });
   },
 });
@@ -51,12 +47,12 @@ export const LinkMutation = extendType({
         url: nonNull(stringArg()),
       },
 
-      resolve: async (_, { description, url }, { prisma, userId }) => {
+      resolve(_, { description, url }, { prisma, userId }) {
         if (!userId) {
           throw new Error("cannot post without logging in");
         }
 
-        const newLink = prisma.link.create({
+        return prisma.link.create({
           data: {
             id: Date.now().toString(),
             description,
@@ -64,7 +60,6 @@ export const LinkMutation = extendType({
             postedBy: { connect: { id: userId.toString() } },
           },
         });
-        return newLink;
       },
     });
   },
@@ -80,15 +75,12 @@ export const FindLinkQuery = extendType({
         id: nonNull(idArg()),
       },
 
-      resolve: async (_, { id }, context) => {
-        const item = await context.prisma.link.findFirst({
+      resolve: (_, { id }, { prisma }) =>
+        prisma.link.findFirst({
           where: {
             id: id,
           },
-        });
-
-        return item as unknown as Link;
-      },
+        }),
     });
   },
 });
@@ -106,18 +98,13 @@ export const UpdateLInkMutation = extendType({
       },
 
       resolve: async (_, { id, description, url }, { prisma }) => {
-        if (!description && !url) {
-          throw new Error(
-            `nothing to update, description: undefined, url: undefined`
-          );
-        }
-        const match = await prisma.link.findFirst({
+        const link = await prisma.link.findFirst({
           where: {
             id,
           },
         });
 
-        if (!match) {
+        if (!link) {
           throw new Error(`could not find link with id ${id}`);
         }
 
@@ -126,9 +113,9 @@ export const UpdateLInkMutation = extendType({
             id,
           },
           data: {
-            ...match,
-            description: description || match?.description,
-            url: url || match?.url,
+            ...link,
+            description: description || link?.description,
+            url: url || link?.url,
           },
         });
 
