@@ -15,9 +15,9 @@ export const prisma = new PrismaClient();
 
 const populateDevServer = async () => {
   const delUsers = await prisma.user.deleteMany();
-  console.log("deleted users");
+  console.log("deleted users", delUsers);
   const delLinks = await prisma.link.deleteMany();
-  console.log("deleted links");
+  console.log("deleted links", delLinks);
 
   const users: User[] = new Array(5).fill(0).map((_, idx) => ({
     id: (Date.now() + idx).toString(),
