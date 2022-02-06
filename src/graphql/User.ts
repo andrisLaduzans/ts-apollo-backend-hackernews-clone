@@ -22,6 +22,16 @@ export const User = objectType({
             );
         },
       });
+
+    t.nonNull.list.field("votes", {
+      type: "Link",
+      resolve: (source, __, { prisma }) =>
+        prisma.user
+          .findUnique({
+            where: { id: source.id },
+          })
+          .votes(),
+    });
   },
 });
 
