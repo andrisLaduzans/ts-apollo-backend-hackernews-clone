@@ -1,11 +1,22 @@
-import { User } from "@prisma/client";
-import { extendType, idArg, nonNull, objectType, stringArg } from "nexus";
+import { Prisma, User } from "@prisma/client";
+import {
+  arg,
+  enumType,
+  extendType,
+  idArg,
+  inputObjectType,
+  intArg,
+  list,
+  nonNull,
+  objectType,
+  stringArg,
+} from "nexus";
 
 export const Link = objectType({
   name: "Link",
   definition(t) {
     t.nonNull.id("id");
-    t.nonNull.dateTime("createdAt")
+    t.nonNull.dateTime("createdAt");
     t.nonNull.string("description");
     t.nonNull.string("url");
     t.field("postedBy", {
@@ -30,9 +41,40 @@ export const LinkQuery = extendType({
   type: "Query",
 
   definition(t) {
-    t.nonNull.list.nonNull.field("feed", {
-      type: "Link",
-      resolve: (_, __, { prisma }) => prisma.link.findMany(),
+    t.nonNull.field("feed", {
+      type: "Feed",
+      args: {
+        filter: stringArg(),
+        skip: intArg(),
+        take: intArg(),
+        orderBy: arg({ type: list(nonNull(LinkOrderByInput)) }),
+      },
+
+      resolve: async (_, { filter, skip, take, orderBy }, { prisma }) => {
+        const where = filter
+          ? {
+              OR: [
+                { description: { contains: filter } },
+                { url: { contains: filter } },
+              ],
+            }
+          : {};
+
+        const links = await prisma.link.findMany({
+          where,
+          skip: skip || undefined,
+          take: take || undefined,
+          orderBy: orderBy as
+            | Prisma.Enumerable<Prisma.LinkOrderByWithRelationInput>
+            | undefined,
+        });
+        const count = await prisma.link.count({ where });
+
+        return {
+          links,
+          count,
+        };
+      },
     });
   },
 });
@@ -149,5 +191,27 @@ export const DeleteLinkMutation = extendType({
         }
       },
     });
+  },
+});
+
+export const Sort = enumType({
+  name: "Sort",
+  members: ["asc", "desc"],
+});
+
+export const LinkOrderByInput = inputObjectType({
+  name: "LinkOrderByInput",
+  definition(t) {
+    t.field("description", { type: Sort });
+    t.field("url", { type: Sort });
+    t.field("createdAt", { type: Sort });
+  },
+});
+
+export const Feed = objectType({
+  name: "Feed",
+  definition(t) {
+    t.nonNull.list.nonNull.field("links", { type: Link });
+    t.nonNull.int("count");
   },
 });
