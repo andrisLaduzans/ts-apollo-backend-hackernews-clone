@@ -1,5 +1,6 @@
 import { extendType, idArg, nonNull, objectType, stringArg } from "nexus";
 import { resolveImportPath } from "nexus/dist/utils";
+import { context } from "../context";
 
 interface Link {
   id: string;
@@ -48,28 +49,22 @@ export const LinkMutation = extendType({
       args: {
         description: nonNull(stringArg()),
         url: nonNull(stringArg()),
-        userId: nonNull(idArg()),
       },
 
-      resolve: async (_, { description, url, userId }, { prisma }) => {
-        const user = await prisma.user.findFirst({
-          where: {
-            id: userId,
-          },
-        });
-
-        if (!user) {
-          return null;
+      resolve: async (_, { description, url }, { prisma, userId }) => {
+        if (!userId) {
+          throw new Error("cannot post without logging in");
         }
 
-        return prisma.link.create({
+        const newLink = prisma.link.create({
           data: {
             id: Date.now().toString(),
             description,
             url,
-            postedById: user.id,
+            postedBy: { connect: { id: userId.toString() } },
           },
         });
+        return newLink;
       },
     });
   },

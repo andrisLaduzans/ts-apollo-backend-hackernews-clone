@@ -10,13 +10,16 @@
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev --name \"migrate\"",
     "prisma:update": "npm run prisma:migrate && npm run prisma:generate",
-    "prisma:populate": "npx ts-node src/populate.ts"
+    "prisma:populate": "npx ts-node src/populate.ts",
+    "prisma:studio": "npx prisma studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@faker-js/faker": "^6.0.0-alpha.5",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/jsonwebtoken": "^8.5.8",
     "prisma": "^3.9.1",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.5"
@@ -24,7 +27,9 @@
   "dependencies": {
     "@prisma/client": "^3.9.1",
     "apollo-server": "^3.6.2",
+    "bcryptjs": "^2.4.3",
     "graphql": "^15.8.0",
+    "jsonwebtoken": "^8.5.1",
     "nexus": "^1.2.0"
   }
 }
